@@ -31,4 +31,11 @@ public class TodoModel {
         this.completed = todo.getTodoComplete().isComplete();
         this.user = todo.getUser();
     }
+
+    public void updateTodo(Todo todo) {
+        this.modelId = todo.getTodoId().getId();
+        this.todo = todo.getTodoDescr().getDescr();
+        this.completed = todo.getTodoComplete().isComplete();
+        this.user = todo.getUser();
+    }
 }
