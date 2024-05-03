@@ -9,3 +9,9 @@
 - **/todo - Method POST** - RequestBody params are: todo: String, complete: boolean. With RequestHeader: Authorization Bearer token
 - **/todo={id} - Method PUT** - RequestBody params are: todo: String, complete: boolean. With RequestHeader: Authorization Bearer token
 - **/todo={id} - Method DELETE** - RequestHeader: Authorization Bearer token
+
+## Environment Variables
+- create file .env
+- add it to gitignore
+- at Run/Debug Configurations, edit configurations
+- add the path to the .env at the Environment Variables text field

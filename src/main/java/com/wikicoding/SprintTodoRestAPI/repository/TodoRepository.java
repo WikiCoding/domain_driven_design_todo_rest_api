@@ -11,9 +11,5 @@ import java.util.List;
 
 @Repository
 public interface TodoRepository extends JpaRepository<TodoModel, Integer> {
-    @Override
-    @Transactional
-    <S extends TodoModel> S save(S entity);
-
     List<TodoModel> findByUser(User user);
 }

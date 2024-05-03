@@ -2,15 +2,16 @@ package com.wikicoding.SprintTodoRestAPI.service;
 
 import com.wikicoding.SprintTodoRestAPI.domain.Todo;
 import com.wikicoding.SprintTodoRestAPI.domain.TodoFactory;
+import com.wikicoding.SprintTodoRestAPI.dto.TodoMapper;
 import com.wikicoding.SprintTodoRestAPI.dto.TodoResponse;
 import com.wikicoding.SprintTodoRestAPI.exceptions.NotFoundException;
 import com.wikicoding.SprintTodoRestAPI.repository.TodoRepository;
 import com.wikicoding.SprintTodoRestAPI.repository.authrepositories.UserRepository;
 import com.wikicoding.SprintTodoRestAPI.repository.persistencemodels.TodoModel;
 import com.wikicoding.SprintTodoRestAPI.repository.persistencemodels.authmodels.User;
-import com.wikicoding.SprintTodoRestAPI.vo.TodoComplete;
-import com.wikicoding.SprintTodoRestAPI.vo.TodoDescr;
-import com.wikicoding.SprintTodoRestAPI.vo.TodoId;
+import com.wikicoding.SprintTodoRestAPI.value_objects.TodoComplete;
+import com.wikicoding.SprintTodoRestAPI.value_objects.TodoDescr;
+import com.wikicoding.SprintTodoRestAPI.value_objects.TodoId;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,8 +27,9 @@ public class TodoService {
     private final UserRepository userRepository;
     private final TodoRepository repository;
     private final TodoFactory todoFactory;
+    private final TodoMapper todoMapper;
 
-    public TodoResponse addTodo(TodoId todoId, TodoDescr todoDescr, TodoComplete todoComplete) {
+    public Todo addTodo(TodoId todoId, TodoDescr todoDescr, TodoComplete todoComplete) {
         User user = getUserAuthenticated();
 
         Todo todo = todoFactory.createTodo(todoId, todoDescr, todoComplete, user);
@@ -35,8 +37,8 @@ public class TodoService {
         TodoModel todoModel = new TodoModel(todo);
 
         TodoModel saved = repository.save(todoModel);
-        return TodoResponse.builder().id(saved.getModelId()).todo(saved.getTodo()).completed(saved.isCompleted())
-                .userId(saved.getUser().getId()).version(saved.getVersion()).build();
+
+        return todoMapper.dataModelToDomain(saved);
     }
 
     private User getUserAuthenticated() {
@@ -46,26 +48,15 @@ public class TodoService {
         return user.get();
     }
 
-    public Iterable<TodoResponse> getTodos() {
+    public Iterable<Todo> getTodos() {
         User user = getUserAuthenticated();
 
-        List<TodoModel> todos = repository.findByUser(user);
-        List<TodoResponse> todoResponseList = new ArrayList<>();
-        todos.forEach(todo -> {
-            TodoResponse todoResponse = TodoResponse.builder()
-                    .id(todo.getModelId())
-                    .todo(todo.getTodo())
-                    .completed(todo.isCompleted())
-                    .userId(user.getId())
-                    .version(todo.getVersion())
-                    .build();
-            todoResponseList.add(todoResponse);
-        });
+        List<TodoModel> todosModels = repository.findByUser(user);
 
-        return todoResponseList;
+        return new TodoMapper(todoFactory).listDataModelToDomain(todosModels);
     }
 
-    public TodoResponse updateTodo(int todoId, TodoDescr todoDescr, TodoComplete todoComplete) {
+    public Todo updateTodo(int todoId, TodoDescr todoDescr, TodoComplete todoComplete) {
         Optional<TodoModel> todoModel = repository.findById(todoId);
         if (todoModel.isEmpty()) throw new NotFoundException("Todo not found");
         TodoModel todoModelToUpdate = todoModel.get();
@@ -78,19 +69,14 @@ public class TodoService {
 
         TodoModel saved = repository.save(todoModelToUpdate);
 
-        return TodoResponse.builder().id(saved.getModelId()).todo(saved.getTodo()).completed(saved.isCompleted())
-                .userId(user.getId()).version(todoModel.get().getVersion()).build();
+        return todoMapper.dataModelToDomain(saved);
     }
 
-    public TodoResponse deleteTodo(int todoId) {
+    public Todo deleteTodo(int todoId) {
         Optional<TodoModel> todoModel = repository.findById(todoId);
         if (todoModel.isEmpty()) throw new NotFoundException("Todo not found");
         repository.deleteById(todoId);
-        return TodoResponse.builder()
-                .id(todoModel.get().getModelId())
-                .todo(todoModel.get().getTodo())
-                .completed(todoModel.get().isCompleted())
-                .version(todoModel.get().getVersion())
-                .build();
+
+        return todoMapper.dataModelToDomain(todoModel.get());
     }
 }

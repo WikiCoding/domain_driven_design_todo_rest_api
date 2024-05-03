@@ -12,5 +12,4 @@ public class TodoResponse {
     private final String todo;
     private final boolean completed;
     private final int userId;
-    private final int version;
 }

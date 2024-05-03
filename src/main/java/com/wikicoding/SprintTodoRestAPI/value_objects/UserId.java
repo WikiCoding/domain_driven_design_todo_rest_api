@@ -1,4 +1,4 @@
-package com.wikicoding.SprintTodoRestAPI.vo;
+package com.wikicoding.SprintTodoRestAPI.value_objects;
 
 import lombok.*;
 
